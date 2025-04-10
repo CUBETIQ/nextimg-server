@@ -1,4 +1,4 @@
-const version = "0.0.1"
+const version = "0.0.2"
 
 let allowedDomains = process?.env?.ALLOWED_REMOTE_DOMAINS?.split(",") || ["*"];
 let imgproxyUrl = process?.env?.IMGPROXY_URL || "http://imgproxy:8080";
@@ -23,6 +23,20 @@ Bun.serve({
 
         if (url.pathname === "/_/health") {
             return new Response("ok");
+        };
+
+        if (url.pathname === "/_/info") {
+            return new Response({
+                name: "nextimg-server",
+                version,
+                description: "Next.js Image Transformation",
+                author: "Sambo Chea",
+            }, {
+                headers: {
+                    "Content-Type": "application/json",
+                    "Server": "CUBETIQ OneCDN",
+                }
+            });
         };
 
         // Resize image
@@ -64,6 +78,9 @@ async function resize(url) {
             }
         })
         const headers = new Headers(image.headers);
+        // Add CORS headers
+        headers.set("Access-Control-Allow-Origin", "*");
+        headers.set("Access-Control-Allow-Methods", "GET, OPTIONS");
         headers.set("Server", "CUBETIQ OneCDN");
         return new Response(image.body, {
             headers
