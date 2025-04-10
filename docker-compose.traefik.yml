@@ -1,0 +1,45 @@
+services:
+    api:
+        image: ghcr.io/cubetiq/nextimg-server:latest
+        ports:
+            - '3000'
+        environment:
+            - NODE_ENV=production
+            - ALLOWED_REMOTE_DOMAINS=*
+            - IMGPROXY_URL=http://imgproxy:8080
+        healthcheck:
+            test: 'wget -qO- http://localhost:3000/_/health || exit 1'
+            interval: 2s
+            timeout: 10s
+            retries: 5
+        depends_on:
+            imgproxy:
+                condition: service_healthy
+        networks:
+            - traefik-net
+        labels:
+            - 'traefik.enable=true'
+            - 'traefik.http.routers.nextimg.rule=Host(`nextimg-yourhostname.com`)'
+            - 'traefik.http.services.nextimg.loadbalancer.server.port=3000'
+            - 'traefik.http.services.nextimg.loadbalancer.healthcheck.path=/_/health'
+            - 'traefik.http.middlewares.nextimg-ratelimit.ratelimit.average=100'
+            - 'traefik.http.middlewares.nextimg-ratelimit.ratelimit.burst=50'
+
+    imgproxy:
+        image: darthsim/imgproxy
+        environment:
+            - IMGPROXY_ENABLE_WEBP_DETECTION=true
+            - IMGPROXY_ENABLE_AVIF_DETECTION=true
+            - IMGPROXY_JPEG_PROGRESSIVE=true
+            - IMGPROXY_USE_ETAG=true
+        healthcheck:
+            test: ['CMD', 'imgproxy', 'health']
+            interval: 2s
+            timeout: 10s
+            retries: 5
+        networks:
+            - traefik-net
+
+networks:
+    traefik-net:
+        external: true
