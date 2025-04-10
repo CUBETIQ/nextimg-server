@@ -32,7 +32,7 @@ jobs:
                   tags: |
                       type=semver,pattern={{version}}
             - name: Build and push
-              uses: docker/build-push-action@v5
+              uses: docker/build-push-action@v6
               with:
                   context: .
                   platforms: linux/amd64
@@ -62,7 +62,7 @@ jobs:
                   tags: |
                       type=semver,pattern={{version}}-aarch64
             - name: Build and push
-              uses: docker/build-push-action@v5
+              uses: docker/build-push-action@v6
               with:
                   context: .
                   platforms: linux/aarch64
