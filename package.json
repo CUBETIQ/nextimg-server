@@ -1,0 +1,12 @@
+{
+    "name": "nextimg-server",
+    "module": "index.js",
+    "type": "module",
+    "scripts": {
+        "dev": "bun run --watch ./index.js",
+        "start": "bun run ./index.js"
+    },
+    "devDependencies": {},
+    "peerDependencies": {},
+    "dependencies": {}
+}
