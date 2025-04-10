@@ -1,6 +1,6 @@
 services:
     api:
-        image: cubetiq/nextimg-server:latest
+        image: ghcr.io/cubetiq/nextimg-server:latest
         ports:
             - '3000'
         environment:
