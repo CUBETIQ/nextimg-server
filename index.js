@@ -1,4 +1,9 @@
-const version = "0.0.3"
+// Load the version from package.json
+import { readFileSync } from "fs";
+import { join } from "path";
+const packageJsonPath = join(import.meta.dirname, "package.json");
+const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
+const version = packageJson.version || "dev";
 
 let allowedDomains = process?.env?.ALLOWED_REMOTE_DOMAINS?.split(",") || ["*"];
 let imgproxyUrl = process?.env?.IMGPROXY_URL || "http://imgproxy:8080";
@@ -26,12 +31,12 @@ Bun.serve({
         };
 
         if (url.pathname === "/_/info") {
-            return new Response({
+            return new Response(JSON.stringify({
                 name: "nextimg-server",
                 version,
                 description: "Next.js Image Transformation",
                 author: "Sambo Chea",
-            }, {
+            }), {
                 headers: {
                     "Content-Type": "application/json",
                     "Server": "CUBIS OneCDN",
