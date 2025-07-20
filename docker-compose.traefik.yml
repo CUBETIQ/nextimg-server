@@ -26,7 +26,7 @@ services:
             - 'traefik.http.middlewares.nextimg-ratelimit.ratelimit.burst=50'
 
     imgproxy:
-        image: darthsim/imgproxy
+        image: ghcr.io/imgproxy/imgproxy:latest
         environment:
             - IMGPROXY_ENABLE_WEBP_DETECTION=true
             - IMGPROXY_ENABLE_AVIF_DETECTION=true

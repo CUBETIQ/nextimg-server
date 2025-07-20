@@ -1,4 +1,4 @@
-const version = "0.0.2"
+const version = "0.0.3"
 
 let allowedDomains = process?.env?.ALLOWED_REMOTE_DOMAINS?.split(",") || ["*"];
 let imgproxyUrl = process?.env?.IMGPROXY_URL || "http://imgproxy:8080";
@@ -13,10 +13,10 @@ Bun.serve({
     async fetch(req) {
         const url = new URL(req.url);
         if (url.pathname === "/") {
-            return new Response("CUBETIQ OneCDN - Next Image Transformation", {
+            return new Response("CUBIS OneCDN - Next Image Transformation", {
                 headers: {
                     "Content-Type": "text/plain",
-                    "Server": "CUBETIQ OneCDN",
+                    "Server": "CUBIS OneCDN",
                 }
             });
         }
@@ -34,7 +34,7 @@ Bun.serve({
             }, {
                 headers: {
                     "Content-Type": "application/json",
-                    "Server": "CUBETIQ OneCDN",
+                    "Server": "CUBIS OneCDN",
                 }
             });
         };
@@ -81,7 +81,7 @@ async function resize(url) {
         // Add CORS headers
         headers.set("Access-Control-Allow-Origin", "*");
         headers.set("Access-Control-Allow-Methods", "GET, OPTIONS");
-        headers.set("Server", "CUBETIQ OneCDN");
+        headers.set("Server", "CUBIS OneCDN");
         return new Response(image.body, {
             headers
         })
