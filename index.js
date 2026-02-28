@@ -47,6 +47,9 @@ Bun.serve({
         // Resize image
         if (url.pathname.startsWith("/image/")) return await resize(url);
 
+        // Compress and optimize image
+        if (url.pathname.startsWith("/compress/")) return await compress(url);
+
         return new Response("nothing...", {
             status: 404,
             headers: {
@@ -93,5 +96,42 @@ async function resize(url) {
     } catch (e) {
         console.log(e)
         return new Response("Error resizing image")
+    }
+}
+
+async function compress(url) {
+    const preset = "pr:sharp"
+    const src = url.pathname.split("/").slice(2).join("/");
+    const origin = new URL(src).hostname;
+    const allowed = allowedDomains.filter(domain => {
+        if (domain === "*") return true;
+        if (domain === origin) return true;
+        if (domain.startsWith("*.") && origin.endsWith(domain.split("*.").pop())) return true;
+        return false;
+    });
+
+    if (allowed.length === 0) {
+        return new Response(`Domain (${origin}) not allowed.`, { status: 403 });
+    }
+
+    const quality = url.searchParams.get("quality") || 80;
+    const format = url.searchParams.get("format") || ""; // e.g. webp, avif, jpeg, png
+
+    try {
+        const formatOption = format ? `/format:${format}` : "";
+        const imgUrl = `${imgproxyUrl}/${preset}/q:${quality}/strip:1${formatOption}/plain/${src}`;
+        const image = await fetch(imgUrl, {
+            headers: {
+                "Accept": "image/avif,image/webp,image/apng,*/*",
+            }
+        });
+        const headers = new Headers(image.headers);
+        headers.set("Access-Control-Allow-Origin", "*");
+        headers.set("Access-Control-Allow-Methods", "GET, OPTIONS");
+        headers.set("Server", "CUBIS OneCDN");
+        return new Response(image.body, { headers });
+    } catch (e) {
+        console.log(e);
+        return new Response("Error compressing image", { status: 500 });
     }
 }
