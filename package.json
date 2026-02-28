@@ -5,7 +5,10 @@
     "type": "module",
     "scripts": {
         "dev": "bun run --watch ./index.js",
-        "start": "bun run ./index.js"
+        "start": "bun run ./index.js",
+        "release": "bash scripts/release.sh",
+        "release:minor": "bash scripts/release.sh minor",
+        "release:major": "bash scripts/release.sh major"
     },
     "devDependencies": {},
     "peerDependencies": {},
