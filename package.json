@@ -1,6 +1,6 @@
 {
     "name": "nextimg-server",
-    "version": "0.0.8",
+    "version": "0.0.9",
     "module": "index.js",
     "type": "module",
     "scripts": {
