@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NextImg Server — Demo</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --border: #2a2d3e;
+      --accent: #6c63ff;
+      --accent-hover: #5a52d5;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --radius: 10px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+    header h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.5px; }
+    header p { color: var(--muted); margin-top: .4rem; font-size: .95rem; }
+    header span.badge {
+      display: inline-block;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 99px;
+      font-size: .7rem;
+      padding: 2px 10px;
+      margin-left: .5rem;
+      vertical-align: middle;
+      font-weight: 600;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+      width: 100%;
+      max-width: 680px;
+      margin-bottom: 1.5rem;
+    }
+    .card h2 { font-size: 1rem; font-weight: 600; margin-bottom: 1.25rem; color: var(--text); }
+
+    .drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 2.5rem 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+      position: relative;
+    }
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: var(--accent);
+      background: rgba(108,99,255,.06);
+    }
+    .drop-zone input[type="file"] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .drop-zone svg { color: var(--muted); margin-bottom: .75rem; }
+    .drop-zone p { color: var(--muted); font-size: .9rem; }
+    .drop-zone p strong { color: var(--text); }
+    .drop-zone .file-name {
+      margin-top: .5rem;
+      font-size: .82rem;
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .75rem;
+      margin-top: 1rem;
+    }
+    .control-group label {
+      display: block;
+      font-size: .8rem;
+      color: var(--muted);
+      margin-bottom: .35rem;
+    }
+    .control-group input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer; }
+    .control-group select, .control-group input[type="text"] {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      padding: .45rem .6rem;
+      font-size: .875rem;
+      outline: none;
+    }
+    .control-group select:focus, .control-group input[type="text"]:focus {
+      border-color: var(--accent);
+    }
+    .quality-label { display: flex; justify-content: space-between; }
+    .quality-label span { font-size: .8rem; color: var(--muted); }
+    .quality-label strong { color: var(--accent); font-size: .85rem; }
+
+    .tabs {
+      display: flex;
+      gap: .5rem;
+      margin-top: 1rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: .75rem;
+    }
+    .tab {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 6px;
+      padding: .4rem .9rem;
+      font-size: .82rem;
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .tab.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      font-weight: 600;
+    }
+    .tab:hover:not(.active) { border-color: var(--accent); color: var(--text); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      padding: .6rem 1.4rem;
+      font-size: .9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s, opacity .15s;
+      margin-top: 1rem;
+      width: 100%;
+      justify-content: center;
+    }
+    .btn:hover { background: var(--accent-hover); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+      display: none;
+    }
+    .btn.loading .spinner { display: block; }
+    .btn.loading .btn-label { opacity: .6; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Compare slider ── */
+    .compare-wrap {
+      display: none; position: relative; margin-top: 1rem;
+      border-radius: var(--radius); overflow: hidden;
+      border: 1px solid var(--border); background: var(--bg);
+      user-select: none; cursor: col-resize;
+    }
+    .compare-wrap.show { display: block; }
+    .compare-wrap .compare-hint {
+      position: absolute; bottom: .55rem; left: 50%; transform: translateX(-50%);
+      font-size: .7rem; color: rgba(255,255,255,.55); background: rgba(0,0,0,.45);
+      padding: 2px 10px; border-radius: 99px; pointer-events: none; white-space: nowrap;
+      z-index: 10; transition: opacity .3s;
+    }
+    .compare-wrap.dragging .compare-hint,
+    .compare-wrap.dragged   .compare-hint { opacity: 0; }
+    .compare-wrap::after {
+      content: '⤢ Compare';
+      position: absolute; top: .55rem; right: .6rem;
+      font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+      background: rgba(108,99,255,.75); color: #fff;
+      padding: 2px 8px; border-radius: 4px; pointer-events: none;
+      opacity: 0; transition: opacity .2s;
+    }
+    .compare-wrap:hover::after { opacity: 1; }
+    .compare-lbl {
+      position: absolute; top: .55rem; font-size: .68rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .06em;
+      background: rgba(0,0,0,.55); padding: 2px 8px; border-radius: 4px;
+      pointer-events: none; z-index: 10; color: #fff;
+    }
+    .compare-lbl.orig { left: .6rem; }
+    .compare-lbl.comp { right: .6rem; }
+    .compare-base { display: block; width: 100%; height: 280px; object-fit: contain; }
+    .compare-overlay {
+      position: absolute; top: 0; bottom: 0; left: 0;
+      width: 50%; overflow: hidden;
+    }
+    .compare-overlay img {
+      display: block; height: 100%; object-fit: contain;
+      position: absolute; top: 0; left: 0;
+    }
+    .compare-divider {
+      position: absolute; top: 0; bottom: 0;
+      width: 2px; background: #fff; pointer-events: none; z-index: 8;
+      left: 50%; transform: translateX(-50%);
+    }
+    .compare-handle {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 36px; height: 36px;
+      background: #fff; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,.4); z-index: 9;
+      color: #333; font-size: .8rem;
+    }
+
+    /* Stats */
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: .75rem; margin-top: 1rem; margin-bottom: .75rem;
+    }
+    .stat {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: .75rem; text-align: center;
+    }
+    .stat .val { font-size: 1.1rem; font-weight: 700; color: var(--text); }
+    .stat .val.green { color: var(--success); }
+    .stat .val.red   { color: var(--danger); }
+    .stat .lbl { font-size: .72rem; color: var(--muted); margin-top: .2rem; }
+
+    .download-row {
+      display: flex; align-items: center; gap: .75rem;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: .65rem .85rem; font-size: .82rem;
+    }
+    .download-row a { color: var(--accent); text-decoration: none; font-weight: 600; white-space: nowrap; }
+    .download-row a:hover { text-decoration: underline; }
+    .download-row .path { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+    .ttl-badge {
+      font-size: .7rem; background: rgba(108,99,255,.15);
+      border: 1px solid rgba(108,99,255,.3); color: var(--accent);
+      border-radius: 4px; padding: 1px 6px; white-space: nowrap;
+    }
+
+    .error-box {
+      display: none; background: rgba(239,68,68,.1);
+      border: 1px solid rgba(239,68,68,.3); color: #fca5a5;
+      border-radius: var(--radius); padding: .75rem 1rem;
+      font-size: .85rem; margin-top: 1rem;
+    }
+    .error-box.show { display: block; }
+
+    /* result containers */
+    #binary-result, #json-result { display: none; }
+    #binary-result.show, #json-result.show { display: block; }
+    #binary-download { display: none; }
+    #binary-download.show { display: flex; align-items: center; gap: .75rem;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: .65rem .85rem; font-size: .82rem; }
+    #binary-download a { color: var(--accent); text-decoration: none; font-weight: 600; }
+
+    /* ── Fullscreen compare modal ── */
+    #modal {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.88); z-index: 1000;
+      align-items: center; justify-content: center; flex-direction: column;
+    }
+    #modal.show { display: flex; }
+    #modal-close {
+      position: absolute; top: 1rem; right: 1.25rem;
+      background: rgba(255,255,255,.12); border: none; color: #fff;
+      font-size: 1.4rem; width: 2.2rem; height: 2.2rem; border-radius: 50%;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: background .15s;
+    }
+    #modal-close:hover { background: rgba(255,255,255,.25); }
+    #modal-compare {
+      position: relative; width: min(92vw, 1000px); height: min(80vh, 650px);
+      overflow: hidden; border-radius: var(--radius);
+      border: 1px solid var(--border); cursor: col-resize; user-select: none;
+    }
+    #modal-compare .compare-base { width: 100%; height: 100%; object-fit: contain; display: block; }
+    #modal-compare .compare-overlay { top: 0; bottom: 0; height: 100%; }
+    #modal-compare .compare-overlay img { width: 100%; height: 100%; object-fit: contain; }
+    #modal-hint { margin-top: .75rem; font-size: .8rem; color: rgba(255,255,255,.5); }
+
+    footer {
+      margin-top: auto; padding-top: 2rem;
+      color: var(--muted); font-size: .78rem; text-align: center;
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>NextImg Server <span class="badge" id="ver-badge">v?</span></h1>
+  <p>Image compression &amp; optimization demo powered by imgproxy</p>
+</header>
+
+<div class="card">
+  <h2>Upload &amp; Compress</h2>
+
+  <!-- Drop zone -->
+  <div class="drop-zone" id="drop-zone">
+    <input type="file" id="file-input" accept="image/*" />
+    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"/>
+    </svg>
+    <p><strong>Click to upload</strong> or drag &amp; drop</p>
+    <p>PNG, JPG, WebP, AVIF, GIF</p>
+    <div class="file-name" id="file-name"></div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <div class="control-group">
+      <div class="quality-label">
+        <label for="quality">Quality</label>
+        <strong id="quality-val">80</strong>
+      </div>
+      <input type="range" id="quality" min="1" max="100" value="80" />
+    </div>
+    <div class="control-group">
+      <label for="format">Output format</label>
+      <select id="format">
+        <option value="">Same as source</option>
+        <option value="webp">WebP</option>
+        <option value="avif">AVIF</option>
+        <option value="jpeg">JPEG</option>
+        <option value="png">PNG</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Mode tabs -->
+  <div class="tabs">
+    <button class="tab active" data-mode="binary">Return Image</button>
+    <button class="tab" data-mode="json">Return Stats (JSON)</button>
+  </div>
+
+  <button class="btn" id="compress-btn" disabled>
+    <div class="spinner"></div>
+    <span class="btn-label">Compress</span>
+  </button>
+
+  <div class="error-box" id="error-box"></div>
+
+  <!-- Compare slider (shown after compression) -->
+  <div class="compare-wrap" id="compare-wrap">
+    <span class="compare-lbl orig">Original</span>
+    <span class="compare-lbl comp">Compressed</span>
+    <img class="compare-base" id="cmp-orig" src="" alt="original" />
+    <div class="compare-overlay" id="cmp-overlay">
+      <img id="cmp-comp" src="" alt="compressed" />
+    </div>
+    <div class="compare-divider" id="cmp-divider">
+      <div class="compare-handle">&#8596;</div>
+    </div>
+    <span class="compare-hint">⟵ drag to compare ⟶</span>
+  </div>
+
+  <!-- Binary result stats -->
+  <div id="binary-result">
+    <div class="stats-grid">
+      <div class="stat"><div class="val" id="b-orig-size">—</div><div class="lbl">Original</div></div>
+      <div class="stat"><div class="val" id="b-comp-size">—</div><div class="lbl">Compressed</div></div>
+      <div class="stat"><div class="val" id="b-saved">—</div><div class="lbl">Saved</div></div>
+    </div>
+    <div id="binary-download">
+      <a id="binary-dl-link" href="#" download>⬇ Download</a>
+      <span class="path" id="binary-dl-name"></span>
+    </div>
+  </div>
+
+  <!-- JSON / stats result -->
+  <div id="json-result">
+    <div class="stats-grid">
+      <div class="stat"><div class="val" id="stat-orig">—</div><div class="lbl">Original</div></div>
+      <div class="stat"><div class="val" id="stat-opt">—</div><div class="lbl">Compressed</div></div>
+      <div class="stat"><div class="val" id="stat-saved">—</div><div class="lbl">Saved</div></div>
+    </div>
+    <div class="stats-grid" style="grid-template-columns:1fr 1fr; margin-top:0;">
+      <div class="stat"><div class="val" id="stat-fmt">—</div><div class="lbl">Format</div></div>
+      <div class="stat"><div class="val" id="stat-q">—</div><div class="lbl">Quality</div></div>
+    </div>
+    <div class="download-row">
+      <a id="dl-link" href="#" target="_blank">⬇ Download</a>
+      <span class="path" id="dl-filename">—</span>
+      <span class="ttl-badge" id="dl-ttl"></span>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <a href="/_/info" target="_blank">API Info</a> &nbsp;·&nbsp;
+  <a href="/_/health" target="_blank">Health</a> &nbsp;·&nbsp;
+  <a href="/_/ui">UI</a> &nbsp;·&nbsp;
+  CUBIS OneCDN
+</footer>
+
+<!-- Fullscreen compare modal -->
+<div id="modal">
+  <button id="modal-close" title="Close (Esc)">✕</button>
+  <div id="modal-compare">
+    <img class="compare-base" id="modal-orig" src="" alt="original" />
+    <div class="compare-overlay" id="modal-overlay">
+      <img id="modal-comp" src="" alt="compressed" />
+    </div>
+    <div class="compare-divider" id="modal-divider">
+      <div class="compare-handle">&#8596;</div>
+    </div>
+    <span class="compare-lbl orig">Original</span>
+    <span class="compare-lbl comp">Compressed</span>
+  </div>
+  <div id="modal-hint">Drag the divider to compare · click outside to close</div>
+</div>
+
+<script>
+  const API = '';
+
+  fetch(`${API}/_/info`)
+    .then(r => r.json())
+    .then(d => { document.getElementById('ver-badge').textContent = 'v' + d.version; })
+    .catch(() => {});
+
+  // ── State ──
+  let selectedFile  = null;
+  let mode          = 'binary';
+  let origObjectUrl = null;
+  let compObjectUrl = null;
+
+  // ── Elements ──
+  const fileInput  = document.getElementById('file-input');
+  const dropZone   = document.getElementById('drop-zone');
+  const fileNameEl = document.getElementById('file-name');
+  const qualityEl  = document.getElementById('quality');
+  const qualityVal = document.getElementById('quality-val');
+  const formatEl   = document.getElementById('format');
+  const btn        = document.getElementById('compress-btn');
+  const errorBox   = document.getElementById('error-box');
+  const tabs       = document.querySelectorAll('.tab');
+
+  qualityEl.addEventListener('input', () => { qualityVal.textContent = qualityEl.value; });
+
+  tabs.forEach(t => t.addEventListener('click', () => {
+    tabs.forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    mode = t.dataset.mode;
+    resetResults();
+  }));
+
+  fileInput.addEventListener('change', () => handleFile(fileInput.files[0]));
+  dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault(); dropZone.classList.remove('drag-over');
+    if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+  });
+
+  function handleFile(file) {
+    if (!file || !file.type.startsWith('image/')) return;
+    selectedFile = file;
+    fileNameEl.textContent = `${file.name}  (${fmtBytes(file.size)})`;
+    btn.disabled = false;
+    resetResults();
+    if (origObjectUrl) URL.revokeObjectURL(origObjectUrl);
+    origObjectUrl = URL.createObjectURL(file);
+    document.getElementById('cmp-orig').src   = origObjectUrl;
+    document.getElementById('modal-orig').src = origObjectUrl;
+  }
+
+  // ── Compress ──
+  btn.addEventListener('click', async () => {
+    if (!selectedFile) return;
+    hideError(); resetResults(); setLoading(true);
+    const params = new URLSearchParams({ quality: qualityEl.value });
+    if (formatEl.value) params.set('format', formatEl.value);
+    const form = new FormData();
+    form.append('file', selectedFile);
+    try {
+      const headers = mode === 'json' ? { Accept: 'application/json' } : {};
+      const res = await fetch(`${API}/upload/compress?${params}`, { method: 'POST', headers, body: form });
+      if (!res.ok) { showError((await res.text()) || `HTTP ${res.status}`); return; }
+      if (mode === 'json') { showJsonResult(await res.json()); }
+      else                  { showBinaryResult(await res.blob(), selectedFile); }
+    } catch(e) {
+      showError(e.message || 'Network error');
+    } finally {
+      setLoading(false);
+    }
+  });
+
+  // ── Binary result ──
+  function showBinaryResult(blob, origFile) {
+    if (compObjectUrl) URL.revokeObjectURL(compObjectUrl);
+    compObjectUrl = URL.createObjectURL(blob);
+    activateCompare(origObjectUrl, compObjectUrl);
+
+    document.getElementById('b-orig-size').textContent = fmtBytes(origFile.size);
+    const saved = origFile.size - blob.size;
+    const pct   = origFile.size > 0 ? (saved / origFile.size * 100) : 0;
+    document.getElementById('b-comp-size').textContent = fmtBytes(blob.size);
+    document.getElementById('b-comp-size').className   = 'val' + (saved < 0 ? ' red' : '');
+    const savedEl = document.getElementById('b-saved');
+    if (saved >= 0) {
+      savedEl.textContent = `−${fmtBytes(saved)} (${pct.toFixed(1)}%)`;
+      savedEl.className   = 'val green';
+    } else {
+      savedEl.textContent = `+${fmtBytes(-saved)} (+${(-pct).toFixed(1)}%)`;
+      savedEl.className   = 'val red';
+    }
+    const ext    = blob.type.split('/')[1] || 'bin';
+    const dlName = origFile.name.replace(/\.[^.]+$/, '') + '_compressed.' + ext;
+    const dlEl   = document.getElementById('binary-dl-link');
+    dlEl.href = compObjectUrl; dlEl.download = dlName;
+    document.getElementById('binary-dl-name').textContent = dlName;
+    document.getElementById('binary-result').classList.add('show');
+    document.getElementById('binary-download').classList.add('show');
+  }
+
+  // ── JSON result ──
+  function showJsonResult(data) {
+    const dlPath = new URL(data.downloadUrl, location.href).pathname;
+    activateCompare(origObjectUrl, dlPath);
+
+    document.getElementById('stat-orig').textContent = fmtBytes(data.originalSize);
+    document.getElementById('stat-opt').textContent  = fmtBytes(data.optimizedSize);
+    document.getElementById('stat-opt').className    = 'val' + (data.savedSize < 0 ? ' red' : '');
+    const saved2El = document.getElementById('stat-saved');
+    if (data.savedSize >= 0) {
+      saved2El.textContent = `−${fmtBytes(data.savedSize)} (${Math.abs(data.savedPercent)}%)`;
+      saved2El.className   = 'val green';
+    } else {
+      saved2El.textContent = `+${fmtBytes(-data.savedSize)} (+${Math.abs(data.savedPercent)}%)`;
+      saved2El.className   = 'val red';
+    }
+    document.getElementById('stat-fmt').textContent = (data.format || '—').toUpperCase();
+    document.getElementById('stat-q').textContent   = data.quality;
+    const dlLink = document.getElementById('dl-link');
+    dlLink.href  = dlPath;
+    document.getElementById('dl-filename').textContent = data.filename;
+    document.getElementById('dl-ttl').textContent = data.expiresAt
+      ? `expires ${new Date(data.expiresAt).toLocaleTimeString()}`
+      : 'no expiry';
+    document.getElementById('json-result').classList.add('show');
+  }
+
+  // ── Compare slider ──
+  function activateCompare(origSrc, compSrc) {
+    document.getElementById('cmp-orig').src   = origSrc  || '';
+    document.getElementById('cmp-comp').src   = compSrc  || '';
+    document.getElementById('modal-orig').src = origSrc  || '';
+    document.getElementById('modal-comp').src = compSrc  || '';
+    setPos('cmp',   50);
+    setPos('modal', 50);
+    const wrap = document.getElementById('compare-wrap');
+    wrap.classList.add('show');
+    wrap.classList.remove('dragged');
+  }
+
+  function setPos(prefix, pct) {
+    const isModal  = prefix === 'modal';
+    const overlayEl= document.getElementById(isModal ? 'modal-overlay' : 'cmp-overlay');
+    const dividerEl= document.getElementById(isModal ? 'modal-divider' : 'cmp-divider');
+    const container= overlayEl.parentElement;
+    // compressed on LEFT side clipped at pct, original visible on right
+    overlayEl.style.width = pct + '%';
+    dividerEl.style.left  = pct + '%';
+    const img = overlayEl.querySelector('img');
+    img.style.width  = container.offsetWidth + 'px';
+    img.style.height = (isModal ? container.offsetHeight : 280) + 'px';
+  }
+
+  function initDrag(wrapId, prefix) {
+    const wrap = document.getElementById(wrapId);
+    let dragging = false;
+    function pos(e) {
+      const r = wrap.getBoundingClientRect();
+      const x = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+      return Math.max(0, Math.min(100, x / r.width * 100));
+    }
+    wrap.addEventListener('mousedown',  e => { dragging = true; wrap.classList.add('dragging'); e.preventDefault(); });
+    wrap.addEventListener('touchstart', () => { dragging = true; wrap.classList.add('dragging'); }, { passive: true });
+    window.addEventListener('mousemove',  e => { if (dragging) setPos(prefix, pos(e)); });
+    window.addEventListener('touchmove',  e => { if (dragging) setPos(prefix, pos(e.touches[0])); }, { passive: true });
+    window.addEventListener('mouseup',  () => { if (dragging) { dragging = false; wrap.classList.remove('dragging'); wrap.classList.add('dragged'); } });
+    window.addEventListener('touchend', () => { if (dragging) { dragging = false; wrap.classList.remove('dragging'); wrap.classList.add('dragged'); } });
+    new ResizeObserver(() => {
+      const ov = wrap.querySelector('.compare-overlay');
+      if (ov) { const img = ov.querySelector('img'); img.style.width = wrap.offsetWidth + 'px'; }
+    }).observe(wrap);
+  }
+  initDrag('compare-wrap', 'cmp');
+  initDrag('modal-compare', 'modal');
+
+  // ── Modal open/close ──
+  const modal      = document.getElementById('modal');
+  const modalCmp   = document.getElementById('modal-compare');
+  const compareWrap = document.getElementById('compare-wrap');
+  compareWrap.addEventListener('click', e => {
+    if (compareWrap.classList.contains('dragging')) return;
+    if (!document.getElementById('cmp-comp').src) return;
+    setPos('modal', 50);
+    modal.classList.add('show');
+    setTimeout(() => {
+      const ov  = modalCmp.querySelector('.compare-overlay');
+      const img = ov.querySelector('img');
+      img.style.width  = modalCmp.offsetWidth  + 'px';
+      img.style.height = modalCmp.offsetHeight + 'px';
+    }, 50);
+  });
+  document.getElementById('modal-close').addEventListener('click', () => modal.classList.remove('show'));
+  modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('show'); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') modal.classList.remove('show'); });
+
+  // ── Helpers ──
+  function resetResults() {
+    document.getElementById('binary-result').classList.remove('show');
+    document.getElementById('binary-download').classList.remove('show');
+    document.getElementById('json-result').classList.remove('show');
+    document.getElementById('compare-wrap').classList.remove('show');
+    document.getElementById('compare-wrap').classList.remove('dragged');
+  }
+
+  function setLoading(on) {
+    btn.disabled = on;
+    btn.classList.toggle('loading', on);
+    document.querySelector('.btn-label').textContent = on ? 'Compressing…' : 'Compress';
+  }
+  function showError(msg) { errorBox.textContent = '⚠ ' + msg; errorBox.classList.add('show'); }
+  function hideError()    { errorBox.classList.remove('show'); }
+  function fmtBytes(b) {
+    if (b == null || isNaN(b)) return '—';
+    const abs = Math.abs(b);
+    if (abs < 1024)          return b + ' B';
+    if (abs < 1024 * 1024)   return (b / 1024).toFixed(1) + ' KB';
+    return (b / 1024 / 1024).toFixed(2) + ' MB';
+  }
+</script>
+</body>
+</html>

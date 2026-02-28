@@ -37,6 +37,19 @@ Bun.serve({
             });
         }
 
+        if (url.pathname === "/_/ui" || url.pathname === "/demo") {
+            if (url.pathname === "/demo") {
+                return new Response(null, { status: 301, headers: { Location: "/_/ui" } });
+            }
+            const html = readFileSync(join(import.meta.dirname, "public", "demo.html"), "utf-8");
+            return new Response(html, {
+                headers: {
+                    "Content-Type": "text/html; charset=utf-8",
+                    "Server": "CUBIS OneCDN",
+                }
+            });
+        }
+
         if (url.pathname === "/_/health") {
             return new Response("ok");
         };
@@ -201,7 +214,7 @@ async function uploadCompress(req, url) {
 
         const formatOption = format ? `/format:${format}` : "";
         const srcUrl = `${internalUrl}/_/store/${tmpFilename}`;
-        const imgUrl = `${imgproxyUrl}/${preset}/q:${quality}/strip:1${formatOption}/plain/${srcUrl}`;
+        const imgUrl = `${imgproxyUrl}/${preset}/q:${quality}/strip_metadata:1${formatOption}/plain/${srcUrl}`;
 
         const image = await fetch(imgUrl, {
             headers: { "Accept": "image/avif,image/webp,image/apng,*/*" }
@@ -289,7 +302,7 @@ async function compress(url) {
 
     try {
         const formatOption = format ? `/format:${format}` : "";
-        const imgUrl = `${imgproxyUrl}/${preset}/q:${quality}/strip:1${formatOption}/plain/${src}`;
+        const imgUrl = `${imgproxyUrl}/${preset}/q:${quality}/strip_metadata:1${formatOption}/plain/${src}`;
         const image = await fetch(imgUrl, {
             headers: {
                 "Accept": "image/avif,image/webp,image/apng,*/*",
