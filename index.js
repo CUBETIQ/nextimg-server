@@ -50,6 +50,16 @@ Bun.serve({
             });
         }
 
+        if (url.pathname === "/_/ui/examples") {
+            const html = readFileSync(join(import.meta.dirname, "public", "examples.html"), "utf-8");
+            return new Response(html, {
+                headers: {
+                    "Content-Type": "text/html; charset=utf-8",
+                    "Server": "CUBIS OneCDN",
+                }
+            });
+        }
+
         if (url.pathname === "/_/health") {
             return new Response("ok");
         };

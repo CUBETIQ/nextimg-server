@@ -1,0 +1,1059 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>NextImg — React Components</title>
+        <style>
+            :root {
+                --bg: #0a0b10;
+                --surface: #13151e;
+                --surface-2: #1a1d2b;
+                --border: #252839;
+                --accent: #6c63ff;
+                --accent-hover: #5a52d5;
+                --text: #e2e8f0;
+                --muted: #64748b;
+                --green: #22c55e;
+                --radius: 10px;
+                --font-mono:
+                    'SF Mono', 'Cascadia Code', 'Fira Code', ui-monospace,
+                    monospace;
+            }
+            *,
+            *::before,
+            *::after {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+            body {
+                background: var(--bg);
+                color: var(--text);
+                font-family:
+                    system-ui,
+                    -apple-system,
+                    sans-serif;
+                min-height: 100vh;
+                padding: 2rem 1rem;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            a {
+                color: var(--accent);
+                text-decoration: none;
+            }
+            a:hover {
+                text-decoration: underline;
+            }
+
+            /* Header */
+            .header {
+                text-align: center;
+                margin-bottom: 2.5rem;
+                max-width: 640px;
+            }
+            .header h1 {
+                font-size: 1.75rem;
+                font-weight: 700;
+                letter-spacing: -0.5px;
+            }
+            .header h1 .badge {
+                display: inline-block;
+                background: var(--accent);
+                color: #fff;
+                border-radius: 99px;
+                font-size: 0.65rem;
+                padding: 2px 10px;
+                margin-left: 0.5rem;
+                vertical-align: middle;
+                font-weight: 600;
+            }
+            .header p {
+                color: var(--muted);
+                margin-top: 0.5rem;
+                font-size: 0.92rem;
+                line-height: 1.55;
+            }
+            .header nav {
+                margin-top: 0.75rem;
+                font-size: 0.85rem;
+            }
+            .header nav a + a {
+                margin-left: 1rem;
+            }
+
+            /* Component card */
+            .component {
+                background: var(--surface);
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                width: 100%;
+                max-width: 820px;
+                margin-bottom: 1.75rem;
+                overflow: hidden;
+            }
+            .component-head {
+                padding: 1.25rem 1.5rem;
+                border-bottom: 1px solid var(--border);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 1rem;
+            }
+            .component-head h2 {
+                font-size: 1.05rem;
+                font-weight: 600;
+            }
+            .component-head .tag {
+                font-size: 0.65rem;
+                text-transform: uppercase;
+                letter-spacing: 0.06em;
+                border: 1px solid var(--border);
+                border-radius: 4px;
+                padding: 2px 8px;
+                color: var(--muted);
+                white-space: nowrap;
+            }
+            .component-desc {
+                padding: 0.85rem 1.5rem;
+                font-size: 0.85rem;
+                color: var(--muted);
+                border-bottom: 1px solid var(--border);
+                line-height: 1.55;
+            }
+            .component-desc code {
+                background: var(--surface-2);
+                border: 1px solid var(--border);
+                border-radius: 4px;
+                padding: 1px 5px;
+                font-family: var(--font-mono);
+                font-size: 0.78rem;
+                color: var(--text);
+            }
+
+            /* Tabs */
+            .tabs {
+                display: flex;
+                gap: 0;
+                border-bottom: 1px solid var(--border);
+                background: var(--surface-2);
+            }
+            .tab-btn {
+                background: none;
+                border: none;
+                color: var(--muted);
+                font-size: 0.8rem;
+                padding: 0.6rem 1.2rem;
+                cursor: pointer;
+                border-bottom: 2px solid transparent;
+                transition: all 0.15s;
+                font-family: inherit;
+                font-weight: 500;
+            }
+            .tab-btn.active {
+                color: var(--text);
+                border-bottom-color: var(--accent);
+            }
+            .tab-btn:hover:not(.active) {
+                color: var(--text);
+            }
+
+            /* Code block */
+            .code-panel {
+                display: none;
+                position: relative;
+            }
+            .code-panel.active {
+                display: block;
+            }
+            .code-block {
+                margin: 0;
+                padding: 1.25rem 1.5rem;
+                overflow-x: auto;
+                background: var(--surface);
+                font-family: var(--font-mono);
+                font-size: 0.78rem;
+                line-height: 1.65;
+                color: #c9d1d9;
+                white-space: pre;
+                tab-size: 2;
+            }
+            .copy-btn {
+                position: absolute;
+                top: 0.6rem;
+                right: 0.75rem;
+                background: var(--surface-2);
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                padding: 0.35rem 0.7rem;
+                cursor: pointer;
+                color: var(--muted);
+                font-size: 0.72rem;
+                font-weight: 500;
+                transition: all 0.15s;
+                font-family: inherit;
+            }
+            .copy-btn:hover {
+                color: var(--text);
+                border-color: var(--accent);
+            }
+            .copy-btn.copied {
+                color: var(--green);
+                border-color: var(--green);
+            }
+
+            /* Install bar */
+            .install-bar {
+                background: var(--surface);
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                width: 100%;
+                max-width: 820px;
+                margin-bottom: 1.75rem;
+                padding: 1rem 1.5rem;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 1rem;
+            }
+            .install-bar p {
+                font-size: 0.85rem;
+                color: var(--muted);
+            }
+            .install-bar code {
+                background: var(--surface-2);
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                padding: 0.35rem 0.75rem;
+                font-family: var(--font-mono);
+                font-size: 0.8rem;
+                color: var(--text);
+            }
+
+            /* Section header */
+            .section-title {
+                width: 100%;
+                max-width: 820px;
+                font-size: 0.75rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                color: var(--muted);
+                margin-bottom: 0.75rem;
+                padding-left: 0.25rem;
+            }
+
+            /* Syntax colors */
+            .hl-key {
+                color: #ff7b72;
+            }
+            .hl-str {
+                color: #a5d6ff;
+            }
+            .hl-fn {
+                color: #d2a8ff;
+            }
+            .hl-cm {
+                color: #8b949e;
+                font-style: italic;
+            }
+            .hl-num {
+                color: #79c0ff;
+            }
+            .hl-typ {
+                color: #ffa657;
+            }
+            .hl-tag {
+                color: #7ee787;
+            }
+            .hl-atr {
+                color: #79c0ff;
+            }
+
+            footer {
+                margin-top: auto;
+                padding-top: 2.5rem;
+                color: var(--muted);
+                font-size: 0.78rem;
+                text-align: center;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1>NextImg Components <span class="badge">React</span></h1>
+            <p>
+                Copy-paste React components for image upload &amp; compression.
+                Built for <strong>Next.js + Tailwind CSS</strong> — zero
+                dependencies, just drop into your project.
+            </p>
+            <nav>
+                <a href="/_/ui">&larr; Demo UI</a>
+                <a href="/_/info" target="_blank">API Info</a>
+                <a href="#components">Components &darr;</a>
+            </nav>
+        </div>
+
+        <!-- Prerequisites -->
+        <div class="install-bar">
+            <p>Point your components at your NextImg server:</p>
+            <code>NEXT_PUBLIC_NEXTIMG_URL=http://localhost:3000</code>
+        </div>
+
+        <!-- ───────────────────── COMPONENT 1 ───────────────────── -->
+        <div class="section-title" id="components">Components</div>
+
+        <div class="component">
+            <div class="component-head">
+                <h2>ImageUploader</h2>
+                <span class="tag">Drop Zone · Upload · Compress</span>
+            </div>
+            <div class="component-desc">
+                All-in-one drag-and-drop image upload with built-in compression.
+                Returns compressed binary by default, or full JSON stats when
+                <code>returnStats</code> is set. Supports <code>quality</code>,
+                <code>format</code>, and <code>onComplete</code> callback.
+            </div>
+            <div class="tabs">
+                <button class="tab-btn active" data-panel="c1-code">
+                    image-uploader.tsx
+                </button>
+                <button class="tab-btn" data-panel="c1-usage">Usage</button>
+            </div>
+            <div class="code-panel active" id="c1-code">
+                <button class="copy-btn" data-target="c1-code">Copy</button>
+                <pre
+                    class="code-block"
+                ><span class="hl-str">"use client"</span>;
+
+<span class="hl-key">import</span> { useCallback, useRef, useState } <span class="hl-key">from</span> <span class="hl-str">"react"</span>;
+
+<span class="hl-key">const</span> <span class="hl-fn">NEXTIMG_URL</span> = process.env.NEXT_PUBLIC_NEXTIMG_URL ?? <span class="hl-str">""</span>;
+
+<span class="hl-key">interface</span> <span class="hl-typ">CompressResult</span> {
+  blob: Blob;
+  originalSize: <span class="hl-typ">number</span>;
+  compressedSize: <span class="hl-typ">number</span>;
+  savedPercent: <span class="hl-typ">number</span>;
+  downloadUrl?: <span class="hl-typ">string</span>;
+  filename?: <span class="hl-typ">string</span>;
+}
+
+<span class="hl-key">interface</span> <span class="hl-typ">ImageUploaderProps</span> {
+  quality?: <span class="hl-typ">number</span>;                  <span class="hl-cm">// 1-100 (default 80)</span>
+  format?: <span class="hl-str">"webp"</span> | <span class="hl-str">"avif"</span> | <span class="hl-str">"jpeg"</span> | <span class="hl-str">"png"</span>;
+  returnStats?: <span class="hl-typ">boolean</span>;             <span class="hl-cm">// true → JSON mode with download URL</span>
+  accept?: <span class="hl-typ">string</span>;                   <span class="hl-cm">// file input accept (default "image/*")</span>
+  maxSizeMB?: <span class="hl-typ">number</span>;                <span class="hl-cm">// max file size in MB (default 10)</span>
+  onComplete?: (r: <span class="hl-typ">CompressResult</span>) =&gt; <span class="hl-typ">void</span>;
+  onError?: (err: <span class="hl-typ">string</span>) =&gt; <span class="hl-typ">void</span>;
+  className?: <span class="hl-typ">string</span>;
+  children?: React.ReactNode;       <span class="hl-cm">// custom drop zone content</span>
+}
+
+<span class="hl-key">export function</span> <span class="hl-fn">ImageUploader</span>({
+  quality = <span class="hl-num">80</span>,
+  format,
+  returnStats = <span class="hl-key">false</span>,
+  accept = <span class="hl-str">"image/*"</span>,
+  maxSizeMB = <span class="hl-num">10</span>,
+  onComplete,
+  onError,
+  className = <span class="hl-str">""</span>,
+  children,
+}: <span class="hl-typ">ImageUploaderProps</span>) {
+  <span class="hl-key">const</span> inputRef = useRef&lt;HTMLInputElement&gt;(<span class="hl-key">null</span>);
+  <span class="hl-key">const</span> [dragging, setDragging] = useState(<span class="hl-key">false</span>);
+  <span class="hl-key">const</span> [loading, setLoading] = useState(<span class="hl-key">false</span>);
+  <span class="hl-key">const</span> [preview, setPreview] = useState&lt;<span class="hl-typ">string</span> | <span class="hl-key">null</span>&gt;(<span class="hl-key">null</span>);
+  <span class="hl-key">const</span> [result, setResult] = useState&lt;<span class="hl-typ">CompressResult</span> | <span class="hl-key">null</span>&gt;(<span class="hl-key">null</span>);
+  <span class="hl-key">const</span> [error, setError] = useState&lt;<span class="hl-typ">string</span> | <span class="hl-key">null</span>&gt;(<span class="hl-key">null</span>);
+
+  <span class="hl-key">const</span> <span class="hl-fn">compress</span> = useCallback(<span class="hl-key">async</span> (file: File) =&gt; {
+    <span class="hl-key">if</span> (file.size &gt; maxSizeMB * <span class="hl-num">1024</span> * <span class="hl-num">1024</span>) {
+      <span class="hl-key">const</span> msg = `File exceeds ${maxSizeMB} MB limit`;
+      setError(msg); onError?.(msg); <span class="hl-key">return</span>;
+    }
+
+    setError(<span class="hl-key">null</span>); setLoading(<span class="hl-key">true</span>); setResult(<span class="hl-key">null</span>);
+    setPreview(URL.createObjectURL(file));
+
+    <span class="hl-key">const</span> params = <span class="hl-key">new</span> URLSearchParams({ quality: String(quality) });
+    <span class="hl-key">if</span> (format) params.set(<span class="hl-str">"format"</span>, format);
+
+    <span class="hl-key">const</span> body = <span class="hl-key">new</span> FormData();
+    body.append(<span class="hl-str">"file"</span>, file);
+
+    <span class="hl-key">try</span> {
+      <span class="hl-key">const</span> headers: Record&lt;<span class="hl-typ">string</span>, <span class="hl-typ">string</span>&gt; = {};
+      <span class="hl-key">if</span> (returnStats) headers[<span class="hl-str">"Accept"</span>] = <span class="hl-str">"application/json"</span>;
+
+      <span class="hl-key">const</span> res = <span class="hl-key">await</span> fetch(
+        `<span class="hl-str">${NEXTIMG_URL}/upload/compress?${params}</span>`,
+        { method: <span class="hl-str">"POST"</span>, headers, body }
+      );
+      <span class="hl-key">if</span> (!res.ok) <span class="hl-key">throw new</span> Error(<span class="hl-key">await</span> res.text());
+
+      <span class="hl-key">let</span> r: <span class="hl-typ">CompressResult</span>;
+
+      <span class="hl-key">if</span> (returnStats) {
+        <span class="hl-key">const</span> json = <span class="hl-key">await</span> res.json();
+        <span class="hl-key">const</span> dlPath = <span class="hl-key">new</span> URL(json.downloadUrl, location.href).pathname;
+        r = {
+          blob: <span class="hl-key">await</span> fetch(dlPath).then((r) =&gt; r.blob()),
+          originalSize: json.originalSize,
+          compressedSize: json.optimizedSize,
+          savedPercent: json.savedPercent,
+          downloadUrl: dlPath,
+          filename: json.filename,
+        };
+      } <span class="hl-key">else</span> {
+        <span class="hl-key">const</span> blob = <span class="hl-key">await</span> res.blob();
+        r = {
+          blob,
+          originalSize: file.size,
+          compressedSize: blob.size,
+          savedPercent: +((<span class="hl-num">1</span> - blob.size / file.size) * <span class="hl-num">100</span>).toFixed(<span class="hl-num">1</span>),
+        };
+      }
+
+      setResult(r);
+      onComplete?.(r);
+    } <span class="hl-key">catch</span> (e: <span class="hl-typ">any</span>) {
+      <span class="hl-key">const</span> msg = e?.message ?? <span class="hl-str">"Compression failed"</span>;
+      setError(msg); onError?.(msg);
+    } <span class="hl-key">finally</span> {
+      setLoading(<span class="hl-key">false</span>);
+    }
+  }, [quality, format, returnStats, maxSizeMB, onComplete, onError]);
+
+  <span class="hl-key">const</span> <span class="hl-fn">onDrop</span> = useCallback((e: React.DragEvent) =&gt; {
+    e.preventDefault(); setDragging(<span class="hl-key">false</span>);
+    <span class="hl-key">const</span> file = e.dataTransfer.files[<span class="hl-num">0</span>];
+    <span class="hl-key">if</span> (file) compress(file);
+  }, [compress]);
+
+  <span class="hl-key">return</span> (
+    &lt;<span class="hl-tag">div</span> <span class="hl-atr">className</span>={`<span class="hl-str">relative ${className}</span>`}&gt;
+      &lt;<span class="hl-tag">div</span>
+        <span class="hl-atr">onClick</span>={() =&gt; inputRef.current?.click()}
+        <span class="hl-atr">onDragOver</span>={(e) =&gt; { e.preventDefault(); setDragging(<span class="hl-key">true</span>); }}
+        <span class="hl-atr">onDragLeave</span>={() =&gt; setDragging(<span class="hl-key">false</span>)}
+        <span class="hl-atr">onDrop</span>={onDrop}
+        <span class="hl-atr">className</span>={`
+          <span class="hl-str">flex flex-col items-center justify-center gap-2
+          rounded-xl border-2 border-dashed p-8 cursor-pointer
+          transition-colors duration-200
+          ${dragging
+            ? "border-indigo-500 bg-indigo-500/5"
+            : "border-zinc-700 hover:border-zinc-500 bg-zinc-900/50"
+          }</span>
+        `}
+      &gt;
+        &lt;<span class="hl-tag">input</span>
+          <span class="hl-atr">ref</span>={inputRef}
+          <span class="hl-atr">type</span>=<span class="hl-str">"file"</span>
+          <span class="hl-atr">accept</span>={accept}
+          <span class="hl-atr">className</span>=<span class="hl-str">"hidden"</span>
+          <span class="hl-atr">onChange</span>={(e) =&gt; e.target.files?.[<span class="hl-num">0</span>] &amp;&amp; compress(e.target.files[<span class="hl-num">0</span>])}
+        /&gt;
+        {children ?? (
+          &lt;&gt;
+            &lt;<span class="hl-tag">svg</span> <span class="hl-atr">className</span>=<span class="hl-str">"w-8 h-8 text-zinc-500"</span> <span class="hl-atr">fill</span>=<span class="hl-str">"none"</span> <span class="hl-atr">viewBox</span>=<span class="hl-str">"0 0 24 24"</span> <span class="hl-atr">stroke</span>=<span class="hl-str">"currentColor"</span> <span class="hl-atr">strokeWidth</span>={<span class="hl-num">1.5</span>}&gt;
+              &lt;<span class="hl-tag">path</span> <span class="hl-atr">strokeLinecap</span>=<span class="hl-str">"round"</span> <span class="hl-atr">strokeLinejoin</span>=<span class="hl-str">"round"</span> <span class="hl-atr">d</span>=<span class="hl-str">"M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"</span> /&gt;
+            &lt;/<span class="hl-tag">svg</span>&gt;
+            &lt;<span class="hl-tag">p</span> <span class="hl-atr">className</span>=<span class="hl-str">"text-sm text-zinc-400"</span>&gt;
+              &lt;<span class="hl-tag">span</span> <span class="hl-atr">className</span>=<span class="hl-str">"font-medium text-white"</span>&gt;Click to upload&lt;/<span class="hl-tag">span</span>&gt; or drag &amp; drop
+            &lt;/<span class="hl-tag">p</span>&gt;
+            &lt;<span class="hl-tag">p</span> <span class="hl-atr">className</span>=<span class="hl-str">"text-xs text-zinc-500"</span>&gt;PNG, JPG, WebP, AVIF &bull; max {maxSizeMB}MB&lt;/<span class="hl-tag">p</span>&gt;
+          &lt;/&gt;
+        )}
+      &lt;/<span class="hl-tag">div</span>&gt;
+
+      {loading &amp;&amp; (
+        &lt;<span class="hl-tag">div</span> <span class="hl-atr">className</span>=<span class="hl-str">"mt-3 flex items-center gap-2 text-sm text-zinc-400"</span>&gt;
+          &lt;<span class="hl-tag">span</span> <span class="hl-atr">className</span>=<span class="hl-str">"h-4 w-4 animate-spin rounded-full border-2 border-zinc-600 border-t-indigo-400"</span> /&gt;
+          Compressing…
+        &lt;/<span class="hl-tag">div</span>&gt;
+      )}
+
+      {error &amp;&amp; (
+        &lt;<span class="hl-tag">p</span> <span class="hl-atr">className</span>=<span class="hl-str">"mt-3 text-sm text-red-400"</span>&gt;⚠ {error}&lt;/<span class="hl-tag">p</span>&gt;
+      )}
+
+      {result &amp;&amp; (
+        &lt;<span class="hl-tag">div</span> <span class="hl-atr">className</span>=<span class="hl-str">"mt-4 rounded-lg border border-zinc-800 bg-zinc-900 p-4"</span>&gt;
+          {preview &amp;&amp; (
+            &lt;<span class="hl-tag">img</span>
+              <span class="hl-atr">src</span>={URL.createObjectURL(result.blob)}
+              <span class="hl-atr">alt</span>=<span class="hl-str">"compressed"</span>
+              <span class="hl-atr">className</span>=<span class="hl-str">"mb-3 max-h-48 rounded-md object-contain"</span>
+            /&gt;
+          )}
+          &lt;<span class="hl-tag">div</span> <span class="hl-atr">className</span>=<span class="hl-str">"grid grid-cols-3 gap-3 text-center text-xs"</span>&gt;
+            &lt;<span class="hl-tag">div</span>&gt;
+              &lt;<span class="hl-tag">div</span> <span class="hl-atr">className</span>=<span class="hl-str">"text-lg font-bold"</span>&gt;{fmtBytes(result.originalSize)}&lt;/<span class="hl-tag">div</span>&gt;
+              &lt;<span class="hl-tag">div</span> <span class="hl-atr">className</span>=<span class="hl-str">"text-zinc-500"</span>&gt;Original&lt;/<span class="hl-tag">div</span>&gt;
+            &lt;/<span class="hl-tag">div</span>&gt;
+            &lt;<span class="hl-tag">div</span>&gt;
+              &lt;<span class="hl-tag">div</span> <span class="hl-atr">className</span>=<span class="hl-str">"text-lg font-bold"</span>&gt;{fmtBytes(result.compressedSize)}&lt;/<span class="hl-tag">div</span>&gt;
+              &lt;<span class="hl-tag">div</span> <span class="hl-atr">className</span>=<span class="hl-str">"text-zinc-500"</span>&gt;Compressed&lt;/<span class="hl-tag">div</span>&gt;
+            &lt;/<span class="hl-tag">div</span>&gt;
+            &lt;<span class="hl-tag">div</span>&gt;
+              &lt;<span class="hl-tag">div</span> <span class="hl-atr">className</span>={`<span class="hl-str">text-lg font-bold ${
+                result.savedPercent &gt; 0 ? "text-green-400" : "text-red-400"
+              }</span>`}&gt;
+                {result.savedPercent &gt; <span class="hl-num">0</span> ? <span class="hl-str">"−"</span> : <span class="hl-str">"+"</span>}{Math.abs(result.savedPercent)}%
+              &lt;/<span class="hl-tag">div</span>&gt;
+              &lt;<span class="hl-tag">div</span> <span class="hl-atr">className</span>=<span class="hl-str">"text-zinc-500"</span>&gt;Saved&lt;/<span class="hl-tag">div</span>&gt;
+            &lt;/<span class="hl-tag">div</span>&gt;
+          &lt;/<span class="hl-tag">div</span>&gt;
+        &lt;/<span class="hl-tag">div</span>&gt;
+      )}
+    &lt;/<span class="hl-tag">div</span>&gt;
+  );
+}
+
+<span class="hl-key">function</span> <span class="hl-fn">fmtBytes</span>(b: <span class="hl-typ">number</span>): <span class="hl-typ">string</span> {
+  <span class="hl-key">if</span> (b &lt; <span class="hl-num">1024</span>) <span class="hl-key">return</span> b + <span class="hl-str">" B"</span>;
+  <span class="hl-key">if</span> (b &lt; <span class="hl-num">1024</span> * <span class="hl-num">1024</span>) <span class="hl-key">return</span> (b / <span class="hl-num">1024</span>).toFixed(<span class="hl-num">1</span>) + <span class="hl-str">" KB"</span>;
+  <span class="hl-key">return</span> (b / <span class="hl-num">1024</span> / <span class="hl-num">1024</span>).toFixed(<span class="hl-num">2</span>) + <span class="hl-str">" MB"</span>;
+}</pre>
+            </div>
+            <div class="code-panel" id="c1-usage">
+                <button class="copy-btn" data-target="c1-usage">Copy</button>
+                <pre
+                    class="code-block"
+                ><span class="hl-key">import</span> { <span class="hl-fn">ImageUploader</span> } <span class="hl-key">from</span> <span class="hl-str">"@/components/image-uploader"</span>;
+
+<span class="hl-key">export default function</span> <span class="hl-fn">Page</span>() {
+  <span class="hl-key">return</span> (
+    &lt;<span class="hl-tag">ImageUploader</span>
+      <span class="hl-atr">quality</span>={<span class="hl-num">75</span>}
+      <span class="hl-atr">format</span>=<span class="hl-str">"webp"</span>
+      <span class="hl-atr">onComplete</span>={(r) =&gt; console.log(<span class="hl-str">"Compressed!"</span>, r)}
+      <span class="hl-atr">className</span>=<span class="hl-str">"max-w-md mx-auto"</span>
+    /&gt;
+  );
+}
+
+<span class="hl-cm">// With JSON stats mode (returns download URL + server-side stats):</span>
+&lt;<span class="hl-tag">ImageUploader</span> <span class="hl-atr">returnStats</span> <span class="hl-atr">quality</span>={<span class="hl-num">60</span>} <span class="hl-atr">format</span>=<span class="hl-str">"avif"</span> /&gt;
+
+<span class="hl-cm">// Custom drop zone content:</span>
+&lt;<span class="hl-tag">ImageUploader</span> <span class="hl-atr">quality</span>={<span class="hl-num">80</span>}&gt;
+  &lt;<span class="hl-tag">p</span>&gt;Drop your photo here&lt;/<span class="hl-tag">p</span>&gt;
+&lt;/<span class="hl-tag">ImageUploader</span>&gt;</pre>
+            </div>
+        </div>
+
+        <!-- ───────────────────── COMPONENT 2 ───────────────────── -->
+        <div class="component">
+            <div class="component-head">
+                <h2>useImageCompress</h2>
+                <span class="tag">Hook · Headless</span>
+            </div>
+            <div class="component-desc">
+                A headless React hook for when you want full control over the
+                UI. Provides <code>compress(file)</code>, loading/error state,
+                and typed result — wire it to any file input or custom drop
+                zone.
+            </div>
+            <div class="tabs">
+                <button class="tab-btn active" data-panel="c2-code">
+                    use-image-compress.ts
+                </button>
+                <button class="tab-btn" data-panel="c2-usage">Usage</button>
+            </div>
+            <div class="code-panel active" id="c2-code">
+                <button class="copy-btn" data-target="c2-code">Copy</button>
+                <pre
+                    class="code-block"
+                ><span class="hl-str">"use client"</span>;
+
+<span class="hl-key">import</span> { useCallback, useState } <span class="hl-key">from</span> <span class="hl-str">"react"</span>;
+
+<span class="hl-key">const</span> <span class="hl-fn">NEXTIMG_URL</span> = process.env.NEXT_PUBLIC_NEXTIMG_URL ?? <span class="hl-str">""</span>;
+
+<span class="hl-key">interface</span> <span class="hl-typ">CompressOptions</span> {
+  quality?: <span class="hl-typ">number</span>;
+  format?: <span class="hl-str">"webp"</span> | <span class="hl-str">"avif"</span> | <span class="hl-str">"jpeg"</span> | <span class="hl-str">"png"</span>;
+  returnStats?: <span class="hl-typ">boolean</span>;
+}
+
+<span class="hl-key">interface</span> <span class="hl-typ">CompressResult</span> {
+  blob: Blob;
+  url: <span class="hl-typ">string</span>;            <span class="hl-cm">// object URL for preview</span>
+  originalSize: <span class="hl-typ">number</span>;
+  compressedSize: <span class="hl-typ">number</span>;
+  savedPercent: <span class="hl-typ">number</span>;
+  downloadUrl?: <span class="hl-typ">string</span>;   <span class="hl-cm">// server path (stats mode)</span>
+  filename?: <span class="hl-typ">string</span>;
+}
+
+<span class="hl-key">export function</span> <span class="hl-fn">useImageCompress</span>(opts: <span class="hl-typ">CompressOptions</span> = {}) {
+  <span class="hl-key">const</span> { quality = <span class="hl-num">80</span>, format, returnStats = <span class="hl-key">false</span> } = opts;
+  <span class="hl-key">const</span> [loading, setLoading] = useState(<span class="hl-key">false</span>);
+  <span class="hl-key">const</span> [error, setError] = useState&lt;<span class="hl-typ">string</span> | <span class="hl-key">null</span>&gt;(<span class="hl-key">null</span>);
+  <span class="hl-key">const</span> [result, setResult] = useState&lt;<span class="hl-typ">CompressResult</span> | <span class="hl-key">null</span>&gt;(<span class="hl-key">null</span>);
+
+  <span class="hl-key">const</span> <span class="hl-fn">compress</span> = useCallback(<span class="hl-key">async</span> (file: File) =&gt; {
+    setLoading(<span class="hl-key">true</span>); setError(<span class="hl-key">null</span>); setResult(<span class="hl-key">null</span>);
+
+    <span class="hl-key">const</span> params = <span class="hl-key">new</span> URLSearchParams({ quality: String(quality) });
+    <span class="hl-key">if</span> (format) params.set(<span class="hl-str">"format"</span>, format);
+
+    <span class="hl-key">const</span> body = <span class="hl-key">new</span> FormData();
+    body.append(<span class="hl-str">"file"</span>, file);
+
+    <span class="hl-key">try</span> {
+      <span class="hl-key">const</span> headers: Record&lt;<span class="hl-typ">string</span>, <span class="hl-typ">string</span>&gt; = {};
+      <span class="hl-key">if</span> (returnStats) headers[<span class="hl-str">"Accept"</span>] = <span class="hl-str">"application/json"</span>;
+
+      <span class="hl-key">const</span> res = <span class="hl-key">await</span> fetch(
+        `<span class="hl-str">${NEXTIMG_URL}/upload/compress?${params}</span>`,
+        { method: <span class="hl-str">"POST"</span>, headers, body }
+      );
+      <span class="hl-key">if</span> (!res.ok) <span class="hl-key">throw new</span> Error(<span class="hl-key">await</span> res.text());
+
+      <span class="hl-key">if</span> (returnStats) {
+        <span class="hl-key">const</span> json = <span class="hl-key">await</span> res.json();
+        <span class="hl-key">const</span> dlPath = <span class="hl-key">new</span> URL(json.downloadUrl, location.href).pathname;
+        <span class="hl-key">const</span> blob = <span class="hl-key">await</span> fetch(dlPath).then((r) =&gt; r.blob());
+        setResult({
+          blob, url: URL.createObjectURL(blob),
+          originalSize: json.originalSize,
+          compressedSize: json.optimizedSize,
+          savedPercent: json.savedPercent,
+          downloadUrl: dlPath, filename: json.filename,
+        });
+      } <span class="hl-key">else</span> {
+        <span class="hl-key">const</span> blob = <span class="hl-key">await</span> res.blob();
+        setResult({
+          blob, url: URL.createObjectURL(blob),
+          originalSize: file.size,
+          compressedSize: blob.size,
+          savedPercent: +(((<span class="hl-num">1</span> - blob.size / file.size) * <span class="hl-num">100</span>).toFixed(<span class="hl-num">1</span>)),
+        });
+      }
+    } <span class="hl-key">catch</span> (e: <span class="hl-typ">any</span>) {
+      setError(e?.message ?? <span class="hl-str">"Compression failed"</span>);
+    } <span class="hl-key">finally</span> {
+      setLoading(<span class="hl-key">false</span>);
+    }
+  }, [quality, format, returnStats]);
+
+  <span class="hl-key">const</span> <span class="hl-fn">reset</span> = useCallback(() =&gt; {
+    <span class="hl-key">if</span> (result?.url) URL.revokeObjectURL(result.url);
+    setResult(<span class="hl-key">null</span>); setError(<span class="hl-key">null</span>);
+  }, [result]);
+
+  <span class="hl-key">return</span> { compress, reset, loading, error, result } <span class="hl-key">as const</span>;
+}</pre>
+            </div>
+            <div class="code-panel" id="c2-usage">
+                <button class="copy-btn" data-target="c2-usage">Copy</button>
+                <pre
+                    class="code-block"
+                ><span class="hl-str">"use client"</span>;
+
+<span class="hl-key">import</span> { <span class="hl-fn">useImageCompress</span> } <span class="hl-key">from</span> <span class="hl-str">"@/hooks/use-image-compress"</span>;
+
+<span class="hl-key">export default function</span> <span class="hl-fn">MyUploadPage</span>() {
+  <span class="hl-key">const</span> { compress, loading, error, result, reset } = <span class="hl-fn">useImageCompress</span>({
+    quality: <span class="hl-num">75</span>,
+    format: <span class="hl-str">"webp"</span>,
+  });
+
+  <span class="hl-key">return</span> (
+    &lt;<span class="hl-tag">div</span> <span class="hl-atr">className</span>=<span class="hl-str">"p-8 max-w-md mx-auto"</span>&gt;
+      &lt;<span class="hl-tag">input</span>
+        <span class="hl-atr">type</span>=<span class="hl-str">"file"</span>
+        <span class="hl-atr">accept</span>=<span class="hl-str">"image/*"</span>
+        <span class="hl-atr">onChange</span>={(e) =&gt; e.target.files?.[<span class="hl-num">0</span>] &amp;&amp; compress(e.target.files[<span class="hl-num">0</span>])}
+      /&gt;
+
+      {loading &amp;&amp; &lt;<span class="hl-tag">p</span>&gt;Compressing…&lt;/<span class="hl-tag">p</span>&gt;}
+      {error &amp;&amp; &lt;<span class="hl-tag">p</span> <span class="hl-atr">className</span>=<span class="hl-str">"text-red-400"</span>&gt;{error}&lt;/<span class="hl-tag">p</span>&gt;}
+
+      {result &amp;&amp; (
+        &lt;<span class="hl-tag">div</span>&gt;
+          &lt;<span class="hl-tag">img</span> <span class="hl-atr">src</span>={result.url} <span class="hl-atr">alt</span>=<span class="hl-str">"compressed"</span> <span class="hl-atr">className</span>=<span class="hl-str">"max-h-64 rounded"</span> /&gt;
+          &lt;<span class="hl-tag">p</span>&gt;{result.compressedSize} bytes ({result.savedPercent}% saved)&lt;/<span class="hl-tag">p</span>&gt;
+          &lt;<span class="hl-tag">button</span> <span class="hl-atr">onClick</span>={reset}&gt;Reset&lt;/<span class="hl-tag">button</span>&gt;
+        &lt;/<span class="hl-tag">div</span>&gt;
+      )}
+    &lt;/<span class="hl-tag">div</span>&gt;
+  );
+}</pre>
+            </div>
+        </div>
+
+        <!-- ───────────────────── COMPONENT 3 ───────────────────── -->
+        <div class="component">
+            <div class="component-head">
+                <h2>ImageCompareSlider</h2>
+                <span class="tag">Before / After · Slider</span>
+            </div>
+            <div class="component-desc">
+                A before/after image comparison slider. Feed it
+                <code>originalSrc</code> and <code>compressedSrc</code>
+                (blob URLs or regular URLs) and it renders a draggable divider.
+                Works great with the hook above.
+            </div>
+            <div class="tabs">
+                <button class="tab-btn active" data-panel="c3-code">
+                    image-compare-slider.tsx
+                </button>
+                <button class="tab-btn" data-panel="c3-usage">Usage</button>
+            </div>
+            <div class="code-panel active" id="c3-code">
+                <button class="copy-btn" data-target="c3-code">Copy</button>
+                <pre
+                    class="code-block"
+                ><span class="hl-str">"use client"</span>;
+
+<span class="hl-key">import</span> { useCallback, useRef, useState } <span class="hl-key">from</span> <span class="hl-str">"react"</span>;
+
+<span class="hl-key">interface</span> <span class="hl-typ">ImageCompareSliderProps</span> {
+  originalSrc: <span class="hl-typ">string</span>;
+  compressedSrc: <span class="hl-typ">string</span>;
+  height?: <span class="hl-typ">number</span>;        <span class="hl-cm">// px, default 300</span>
+  className?: <span class="hl-typ">string</span>;
+}
+
+<span class="hl-key">export function</span> <span class="hl-fn">ImageCompareSlider</span>({
+  originalSrc,
+  compressedSrc,
+  height = <span class="hl-num">300</span>,
+  className = <span class="hl-str">""</span>,
+}: <span class="hl-typ">ImageCompareSliderProps</span>) {
+  <span class="hl-key">const</span> containerRef = useRef&lt;HTMLDivElement&gt;(<span class="hl-key">null</span>);
+  <span class="hl-key">const</span> [pos, setPos] = useState(<span class="hl-num">50</span>);
+  <span class="hl-key">const</span> dragging = useRef(<span class="hl-key">false</span>);
+
+  <span class="hl-key">const</span> <span class="hl-fn">updatePos</span> = useCallback((clientX: <span class="hl-typ">number</span>) =&gt; {
+    <span class="hl-key">const</span> el = containerRef.current;
+    <span class="hl-key">if</span> (!el) <span class="hl-key">return</span>;
+    <span class="hl-key">const</span> rect = el.getBoundingClientRect();
+    <span class="hl-key">const</span> pct = Math.max(<span class="hl-num">0</span>, Math.min(<span class="hl-num">100</span>,
+      ((clientX - rect.left) / rect.width) * <span class="hl-num">100</span>
+    ));
+    setPos(pct);
+  }, []);
+
+  <span class="hl-key">const</span> <span class="hl-fn">onPointerDown</span> = useCallback((e: React.PointerEvent) =&gt; {
+    dragging.current = <span class="hl-key">true</span>;
+    (e.target <span class="hl-key">as</span> HTMLElement).setPointerCapture(e.pointerId);
+    updatePos(e.clientX);
+  }, [updatePos]);
+
+  <span class="hl-key">const</span> <span class="hl-fn">onPointerMove</span> = useCallback((e: React.PointerEvent) =&gt; {
+    <span class="hl-key">if</span> (dragging.current) updatePos(e.clientX);
+  }, [updatePos]);
+
+  <span class="hl-key">const</span> <span class="hl-fn">onPointerUp</span> = useCallback(() =&gt; {
+    dragging.current = <span class="hl-key">false</span>;
+  }, []);
+
+  <span class="hl-key">return</span> (
+    &lt;<span class="hl-tag">div</span>
+      <span class="hl-atr">ref</span>={containerRef}
+      <span class="hl-atr">onPointerDown</span>={onPointerDown}
+      <span class="hl-atr">onPointerMove</span>={onPointerMove}
+      <span class="hl-atr">onPointerUp</span>={onPointerUp}
+      <span class="hl-atr">className</span>={`
+        <span class="hl-str">relative select-none cursor-col-resize overflow-hidden
+        rounded-xl border border-zinc-800 bg-zinc-950 ${className}</span>
+      `}
+      <span class="hl-atr">style</span>={{ height }}
+    &gt;
+      {<span class="hl-cm">/* Original (right side / base) */</span>}
+      &lt;<span class="hl-tag">img</span>
+        <span class="hl-atr">src</span>={originalSrc}
+        <span class="hl-atr">alt</span>=<span class="hl-str">"original"</span>
+        <span class="hl-atr">className</span>=<span class="hl-str">"absolute inset-0 h-full w-full object-contain"</span>
+        <span class="hl-atr">draggable</span>={<span class="hl-key">false</span>}
+      /&gt;
+
+      {<span class="hl-cm">/* Compressed (left side, clipped) */</span>}
+      &lt;<span class="hl-tag">div</span>
+        <span class="hl-atr">className</span>=<span class="hl-str">"absolute inset-y-0 left-0 overflow-hidden"</span>
+        <span class="hl-atr">style</span>={{ width: `${pos}%` }}
+      &gt;
+        &lt;<span class="hl-tag">img</span>
+          <span class="hl-atr">src</span>={compressedSrc}
+          <span class="hl-atr">alt</span>=<span class="hl-str">"compressed"</span>
+          <span class="hl-atr">className</span>=<span class="hl-str">"h-full object-contain"</span>
+          <span class="hl-atr">style</span>={{ width: containerRef.current?.offsetWidth }}
+          <span class="hl-atr">draggable</span>={<span class="hl-key">false</span>}
+        /&gt;
+      &lt;/<span class="hl-tag">div</span>&gt;
+
+      {<span class="hl-cm">/* Divider line */</span>}
+      &lt;<span class="hl-tag">div</span>
+        <span class="hl-atr">className</span>=<span class="hl-str">"absolute inset-y-0 w-0.5 bg-white/80 -translate-x-1/2"</span>
+        <span class="hl-atr">style</span>={{ left: `${pos}%` }}
+      &gt;
+        &lt;<span class="hl-tag">div</span> <span class="hl-atr">className</span>=<span class="hl-str">"absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
+          w-8 h-8 rounded-full bg-white shadow-lg flex items-center justify-center"</span>&gt;
+          &lt;<span class="hl-tag">span</span> <span class="hl-atr">className</span>=<span class="hl-str">"text-zinc-600 text-sm"</span>&gt;↔&lt;/<span class="hl-tag">span</span>&gt;
+        &lt;/<span class="hl-tag">div</span>&gt;
+      &lt;/<span class="hl-tag">div</span>&gt;
+
+      {<span class="hl-cm">/* Labels */</span>}
+      &lt;<span class="hl-tag">span</span> <span class="hl-atr">className</span>=<span class="hl-str">"absolute top-2 left-2 text-[10px] font-bold uppercase
+        tracking-wider bg-black/50 text-white px-2 py-0.5 rounded"</span>
+      &gt;Compressed&lt;/<span class="hl-tag">span</span>&gt;
+      &lt;<span class="hl-tag">span</span> <span class="hl-atr">className</span>=<span class="hl-str">"absolute top-2 right-2 text-[10px] font-bold uppercase
+        tracking-wider bg-black/50 text-white px-2 py-0.5 rounded"</span>
+      &gt;Original&lt;/<span class="hl-tag">span</span>&gt;
+    &lt;/<span class="hl-tag">div</span>&gt;
+  );
+}</pre>
+            </div>
+            <div class="code-panel" id="c3-usage">
+                <button class="copy-btn" data-target="c3-usage">Copy</button>
+                <pre
+                    class="code-block"
+                ><span class="hl-key">import</span> { <span class="hl-fn">ImageCompareSlider</span> } <span class="hl-key">from</span> <span class="hl-str">"@/components/image-compare-slider"</span>;
+
+<span class="hl-cm">// Using with the useImageCompress hook:</span>
+<span class="hl-key">const</span> { compress, result } = <span class="hl-fn">useImageCompress</span>({ quality: <span class="hl-num">70</span> });
+
+{result &amp;&amp; (
+  &lt;<span class="hl-tag">ImageCompareSlider</span>
+    <span class="hl-atr">originalSrc</span>={originalPreviewUrl}
+    <span class="hl-atr">compressedSrc</span>={result.url}
+    <span class="hl-atr">height</span>={<span class="hl-num">400</span>}
+    <span class="hl-atr">className</span>=<span class="hl-str">"max-w-xl"</span>
+  /&gt;
+)}
+
+<span class="hl-cm">// Or with static URLs:</span>
+&lt;<span class="hl-tag">ImageCompareSlider</span>
+  <span class="hl-atr">originalSrc</span>=<span class="hl-str">"/photos/original.jpg"</span>
+  <span class="hl-atr">compressedSrc</span>=<span class="hl-str">"http://localhost:3000/compress/https://example.com/photo.jpg?quality=60"</span>
+  <span class="hl-atr">height</span>={<span class="hl-num">350</span>}
+/&gt;</pre>
+            </div>
+        </div>
+
+        <!-- ───────────────────── COMPONENT 4 ───────────────────── -->
+        <div class="component">
+            <div class="component-head">
+                <h2>CompressedImage</h2>
+                <span class="tag">Next/Image · Drop-in</span>
+            </div>
+            <div class="component-desc">
+                A drop-in <code>&lt;img&gt;</code> replacement that proxies the
+                <code>src</code> through NextImg for on-the-fly compression.
+                Ideal for displaying remote images already optimized — no upload
+                needed.
+            </div>
+            <div class="tabs">
+                <button class="tab-btn active" data-panel="c4-code">
+                    compressed-image.tsx
+                </button>
+                <button class="tab-btn" data-panel="c4-usage">Usage</button>
+            </div>
+            <div class="code-panel active" id="c4-code">
+                <button class="copy-btn" data-target="c4-code">Copy</button>
+                <pre
+                    class="code-block"
+                ><span class="hl-key">import</span> React <span class="hl-key">from</span> <span class="hl-str">"react"</span>;
+
+<span class="hl-key">const</span> <span class="hl-fn">NEXTIMG_URL</span> = process.env.NEXT_PUBLIC_NEXTIMG_URL ?? <span class="hl-str">""</span>;
+
+<span class="hl-key">interface</span> <span class="hl-typ">CompressedImageProps</span>
+  <span class="hl-key">extends</span> React.ImgHTMLAttributes&lt;HTMLImageElement&gt; {
+  src: <span class="hl-typ">string</span>;             <span class="hl-cm">// full image URL</span>
+  quality?: <span class="hl-typ">number</span>;        <span class="hl-cm">// 1-100 (default 80)</span>
+  format?: <span class="hl-str">"webp"</span> | <span class="hl-str">"avif"</span> | <span class="hl-str">"jpeg"</span> | <span class="hl-str">"png"</span>;
+  width?: <span class="hl-typ">number</span>;
+  height?: <span class="hl-typ">number</span>;
+}
+
+<span class="hl-key">export function</span> <span class="hl-fn">CompressedImage</span>({
+  src,
+  quality = <span class="hl-num">80</span>,
+  format,
+  width,
+  height,
+  ...props
+}: <span class="hl-typ">CompressedImageProps</span>) {
+  <span class="hl-key">const</span> params = <span class="hl-key">new</span> URLSearchParams({ quality: String(quality) });
+  <span class="hl-key">if</span> (format) params.set(<span class="hl-str">"format"</span>, format);
+  <span class="hl-key">if</span> (width)  params.set(<span class="hl-str">"width"</span>, String(width));
+  <span class="hl-key">if</span> (height) params.set(<span class="hl-str">"height"</span>, String(height));
+
+  <span class="hl-cm">// Use /compress/ for optimization, /image/ for resize</span>
+  <span class="hl-key">const</span> endpoint = width || height ? <span class="hl-str">"image"</span> : <span class="hl-str">"compress"</span>;
+  <span class="hl-key">const</span> proxiedSrc = `<span class="hl-str">${NEXTIMG_URL}/${endpoint}/${src}?${params}</span>`;
+
+  <span class="hl-key">return</span> &lt;<span class="hl-tag">img</span> <span class="hl-atr">src</span>={proxiedSrc} <span class="hl-atr">loading</span>=<span class="hl-str">"lazy"</span> {...props} /&gt;;
+}</pre>
+            </div>
+            <div class="code-panel" id="c4-usage">
+                <button class="copy-btn" data-target="c4-usage">Copy</button>
+                <pre
+                    class="code-block"
+                ><span class="hl-key">import</span> { <span class="hl-fn">CompressedImage</span> } <span class="hl-key">from</span> <span class="hl-str">"@/components/compressed-image"</span>;
+
+<span class="hl-cm">// Compress a remote image on-the-fly</span>
+&lt;<span class="hl-tag">CompressedImage</span>
+  <span class="hl-atr">src</span>=<span class="hl-str">"https://images.unsplash.com/photo-123456"</span>
+  <span class="hl-atr">quality</span>={<span class="hl-num">70</span>}
+  <span class="hl-atr">format</span>=<span class="hl-str">"webp"</span>
+  <span class="hl-atr">alt</span>=<span class="hl-str">"My photo"</span>
+  <span class="hl-atr">className</span>=<span class="hl-str">"w-full rounded-xl"</span>
+/&gt;
+
+<span class="hl-cm">// Resize + compress</span>
+&lt;<span class="hl-tag">CompressedImage</span>
+  <span class="hl-atr">src</span>=<span class="hl-str">"https://example.com/hero.png"</span>
+  <span class="hl-atr">width</span>={<span class="hl-num">800</span>}
+  <span class="hl-atr">height</span>={<span class="hl-num">600</span>}
+  <span class="hl-atr">quality</span>={<span class="hl-num">60</span>}
+  <span class="hl-atr">format</span>=<span class="hl-str">"avif"</span>
+  <span class="hl-atr">alt</span>=<span class="hl-str">"Hero"</span>
+/&gt;</pre>
+            </div>
+        </div>
+
+        <!-- ───────────────────── COMPONENT 5 ───────────────────── -->
+        <div class="component">
+            <div class="component-head">
+                <h2>compressImage</h2>
+                <span class="tag">Utility · Promise-based</span>
+            </div>
+            <div class="component-desc">
+                A standalone async function (no React needed). Use it in API
+                routes, server actions, or vanilla scripts. Returns a typed
+                result object.
+            </div>
+            <div class="tabs">
+                <button class="tab-btn active" data-panel="c5-code">
+                    compress-image.ts
+                </button>
+                <button class="tab-btn" data-panel="c5-usage">Usage</button>
+            </div>
+            <div class="code-panel active" id="c5-code">
+                <button class="copy-btn" data-target="c5-code">Copy</button>
+                <pre
+                    class="code-block"
+                ><span class="hl-key">const</span> <span class="hl-fn">NEXTIMG_URL</span> = process.env.NEXT_PUBLIC_NEXTIMG_URL ?? <span class="hl-str">""</span>;
+
+<span class="hl-key">interface</span> <span class="hl-typ">CompressImageOptions</span> {
+  quality?: <span class="hl-typ">number</span>;
+  format?: <span class="hl-str">"webp"</span> | <span class="hl-str">"avif"</span> | <span class="hl-str">"jpeg"</span> | <span class="hl-str">"png"</span>;
+}
+
+<span class="hl-key">interface</span> <span class="hl-typ">CompressImageResult</span> {
+  blob: Blob;
+  originalSize: <span class="hl-typ">number</span>;
+  compressedSize: <span class="hl-typ">number</span>;
+  savedPercent: <span class="hl-typ">number</span>;
+}
+
+<span class="hl-key">export async function</span> <span class="hl-fn">compressImage</span>(
+  file: File,
+  opts: <span class="hl-typ">CompressImageOptions</span> = {}
+): Promise&lt;<span class="hl-typ">CompressImageResult</span>&gt; {
+  <span class="hl-key">const</span> { quality = <span class="hl-num">80</span>, format } = opts;
+  <span class="hl-key">const</span> params = <span class="hl-key">new</span> URLSearchParams({ quality: String(quality) });
+  <span class="hl-key">if</span> (format) params.set(<span class="hl-str">"format"</span>, format);
+
+  <span class="hl-key">const</span> body = <span class="hl-key">new</span> FormData();
+  body.append(<span class="hl-str">"file"</span>, file);
+
+  <span class="hl-key">const</span> res = <span class="hl-key">await</span> fetch(
+    `<span class="hl-str">${NEXTIMG_URL}/upload/compress?${params}</span>`,
+    { method: <span class="hl-str">"POST"</span>, body }
+  );
+
+  <span class="hl-key">if</span> (!res.ok) <span class="hl-key">throw new</span> Error(<span class="hl-key">await</span> res.text());
+
+  <span class="hl-key">const</span> blob = <span class="hl-key">await</span> res.blob();
+  <span class="hl-key">return</span> {
+    blob,
+    originalSize: file.size,
+    compressedSize: blob.size,
+    savedPercent: +(((<span class="hl-num">1</span> - blob.size / file.size) * <span class="hl-num">100</span>).toFixed(<span class="hl-num">1</span>)),
+  };
+}</pre>
+            </div>
+            <div class="code-panel" id="c5-usage">
+                <button class="copy-btn" data-target="c5-usage">Copy</button>
+                <pre
+                    class="code-block"
+                ><span class="hl-key">import</span> { <span class="hl-fn">compressImage</span> } <span class="hl-key">from</span> <span class="hl-str">"@/lib/compress-image"</span>;
+
+<span class="hl-cm">// In a form submit handler:</span>
+<span class="hl-key">async function</span> <span class="hl-fn">handleSubmit</span>(form: FormData) {
+  <span class="hl-key">const</span> file = form.get(<span class="hl-str">"avatar"</span>) <span class="hl-key">as</span> File;
+  <span class="hl-key">const</span> { blob, savedPercent } = <span class="hl-key">await</span> <span class="hl-fn">compressImage</span>(file, {
+    quality: <span class="hl-num">70</span>,
+    format: <span class="hl-str">"webp"</span>,
+  });
+  console.log(`Saved ${savedPercent}%`);
+
+  <span class="hl-cm">// Upload the compressed blob to your storage</span>
+  <span class="hl-key">const</span> uploadForm = <span class="hl-key">new</span> FormData();
+  uploadForm.append(<span class="hl-str">"file"</span>, blob, <span class="hl-str">"avatar.webp"</span>);
+  <span class="hl-key">await</span> fetch(<span class="hl-str">"/api/upload"</span>, { method: <span class="hl-str">"POST"</span>, body: uploadForm });
+}
+
+<span class="hl-cm">// In a Next.js API route / Server Action:</span>
+<span class="hl-key">const</span> result = <span class="hl-key">await</span> <span class="hl-fn">compressImage</span>(file, { quality: <span class="hl-num">80</span> });
+<span class="hl-cm">// result.blob → write to S3, disk, etc.</span></pre>
+            </div>
+        </div>
+
+        <footer>
+            NextImg Server &mdash;
+            <a href="/_/ui">Demo UI</a> &nbsp;&middot;&nbsp;
+            <a href="/_/info" target="_blank">API</a> &nbsp;&middot;&nbsp; CUBIS
+            OneCDN
+        </footer>
+
+        <script>
+            // Tab switching
+            document.querySelectorAll('.tabs').forEach((tabBar) => {
+                tabBar.querySelectorAll('.tab-btn').forEach((btn) => {
+                    btn.addEventListener('click', () => {
+                        const panel = btn.dataset.panel;
+                        const comp = btn.closest('.component');
+                        comp.querySelectorAll('.tab-btn').forEach((b) =>
+                            b.classList.remove('active'),
+                        );
+                        comp.querySelectorAll('.code-panel').forEach((p) =>
+                            p.classList.remove('active'),
+                        );
+                        btn.classList.add('active');
+                        document.getElementById(panel)?.classList.add('active');
+                    });
+                });
+            });
+
+            // Copy
+            document.querySelectorAll('.copy-btn').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    const target = document.getElementById(btn.dataset.target);
+                    const code =
+                        target?.querySelector('.code-block')?.textContent ?? '';
+                    navigator.clipboard.writeText(code).then(() => {
+                        btn.textContent = 'Copied!';
+                        btn.classList.add('copied');
+                        setTimeout(() => {
+                            btn.textContent = 'Copy';
+                            btn.classList.remove('copied');
+                        }, 2000);
+                    });
+                });
+            });
+        </script>
+    </body>
+</html>
