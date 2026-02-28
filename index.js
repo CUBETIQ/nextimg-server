@@ -14,6 +14,7 @@ if (process.env.NODE_ENV === "development") {
     imgproxyUrl = "http://localhost:8888";
     internalUrl = "http://localhost:3000";
 }
+const publicUrl = process?.env?.PUBLIC_URL || internalUrl;
 
 allowedDomains = allowedDomains.map(d => d.trim());
 
@@ -245,7 +246,7 @@ async function uploadCompress(req, url) {
                 : 0;
             const ttlSeconds = outputTTL > 0 ? outputTTL : null;
             const expiresAt = ttlSeconds ? new Date(Date.now() + ttlSeconds * 1000).toISOString() : null;
-            const downloadUrl = `${internalUrl}/_/store/${outFilename}`;
+            const downloadUrl = `${publicUrl}/_/store/${outFilename}`;
 
             const stats = {
                 success: true,
