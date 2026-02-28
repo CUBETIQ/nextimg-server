@@ -5,6 +5,7 @@ import { randomUUID } from "crypto";
 const packageJsonPath = join(import.meta.dirname, "package.json");
 const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
 const version = packageJson.version || "dev";
+const serverName = "CUBIS OneCDN";
 
 let allowedDomains = process?.env?.ALLOWED_REMOTE_DOMAINS?.split(",") || ["*"];
 let imgproxyUrl = process?.env?.IMGPROXY_URL || "http://imgproxy:8080";
@@ -22,7 +23,7 @@ const outputTTL = parseInt(process?.env?.OUTPUT_TTL || "3600", 10);
 // Single data store directory for both temp uploads and compressed outputs
 const dataStorePath = process?.env?.DATA_STORE_PATH || join(import.meta.dirname, "store");
 const dataDir = dataStorePath.startsWith("/") ? dataStorePath : join(import.meta.dirname, dataStorePath);
-try { mkdirSync(dataDir, { recursive: true }); } catch {}
+try { mkdirSync(dataDir, { recursive: true }); } catch { }
 
 Bun.serve({
     port: 3000,
@@ -32,7 +33,7 @@ Bun.serve({
             return new Response("CUBIS OneCDN - Next Image Transformation", {
                 headers: {
                     "Content-Type": "text/plain",
-                    "Server": "CUBIS OneCDN",
+                    "Server": serverName,
                 }
             });
         }
@@ -45,7 +46,7 @@ Bun.serve({
             return new Response(html, {
                 headers: {
                     "Content-Type": "text/html; charset=utf-8",
-                    "Server": "CUBIS OneCDN",
+                    "Server": serverName,
                 }
             });
         }
@@ -55,7 +56,7 @@ Bun.serve({
             return new Response(html, {
                 headers: {
                     "Content-Type": "text/html; charset=utf-8",
-                    "Server": "CUBIS OneCDN",
+                    "Server": serverName,
                 }
             });
         }
@@ -73,7 +74,7 @@ Bun.serve({
             }), {
                 headers: {
                     "Content-Type": "application/json",
-                    "Server": "CUBIS OneCDN",
+                    "Server": serverName,
                 }
             });
         };
@@ -129,7 +130,7 @@ async function resize(url) {
         // Add CORS headers
         headers.set("Access-Control-Allow-Origin", "*");
         headers.set("Access-Control-Allow-Methods", "GET, OPTIONS");
-        headers.set("Server", "CUBIS OneCDN");
+        headers.set("Server", serverName);
         return new Response(image.body, {
             headers
         })
@@ -165,9 +166,9 @@ function cleanupDataDir() {
                 if (now - mtime > outputTTL * 1000) {
                     unlinkSync(fp);
                 }
-            } catch {}
+            } catch { }
         }
-    } catch {}
+    } catch { }
 }
 
 async function uploadCompress(req, url) {
@@ -267,7 +268,7 @@ async function uploadCompress(req, url) {
                     "Content-Type": "application/json",
                     "Access-Control-Allow-Origin": "*",
                     "Access-Control-Allow-Methods": "POST, OPTIONS",
-                    "Server": "CUBIS OneCDN",
+                    "Server": serverName,
                 }
             });
         } else {
@@ -275,7 +276,7 @@ async function uploadCompress(req, url) {
             const headers = new Headers(image.headers);
             headers.set("Access-Control-Allow-Origin", "*");
             headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
-            headers.set("Server", "CUBIS OneCDN");
+            headers.set("Server", serverName);
             return new Response(resultBuffer, { headers });
         }
     } catch (e) {
@@ -288,7 +289,7 @@ async function uploadCompress(req, url) {
             headers: { "Content-Type": acceptJson ? "application/json" : "text/plain" },
         });
     } finally {
-        try { unlinkSync(tmpFilePath); } catch {}
+        try { unlinkSync(tmpFilePath); } catch { }
     }
 }
 
@@ -321,7 +322,7 @@ async function compress(url) {
         const headers = new Headers(image.headers);
         headers.set("Access-Control-Allow-Origin", "*");
         headers.set("Access-Control-Allow-Methods", "GET, OPTIONS");
-        headers.set("Server", "CUBIS OneCDN");
+        headers.set("Server", serverName);
         return new Response(image.body, { headers });
     } catch (e) {
         console.log(e);
