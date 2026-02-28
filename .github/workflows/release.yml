@@ -10,9 +10,9 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: "cubetiq/nextimg-server"
 
-# Required to push to GHCR and read repo contents
+# Required to push to GHCR and create GitHub Releases
 permissions:
-  contents: read
+  contents: write
   packages: write
 
 jobs:
@@ -60,3 +60,119 @@ jobs:
           provenance: false
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  create-release:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    steps:
+      - name: Checkout (full history for changelog)
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Extract version from tag
+        id: version
+        run: echo "value=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          VERSION="$GITHUB_REF_NAME"
+          # Find previous tag to diff against
+          PREV_TAG=$(git tag --sort=-version:refname | grep -v "^${VERSION}$" | head -1)
+
+          if [[ -n "$PREV_TAG" ]]; then
+            RANGE="${PREV_TAG}..${VERSION}"
+            SINCE_MSG="Changes since ${PREV_TAG}"
+          else
+            RANGE="${VERSION}"
+            SINCE_MSG="Initial release"
+          fi
+
+          # Build changelog grouped by type
+          FEATURES=$(git log "$RANGE" --pretty=format:"- %s" -- | grep -iE '^- (feat|add)' || true)
+          FIXES=$(git log "$RANGE" --pretty=format:"- %s" -- | grep -iE '^- (fix|bug)' || true)
+          CHORES=$(git log "$RANGE" --pretty=format:"- %s" -- | grep -iE '^- (chore|build|ci|refactor|perf|docs|style)' || true)
+          OTHER=$(git log "$RANGE" --pretty=format:"- %s" -- | grep -ivE '^- (feat|add|fix|bug|chore|build|ci|refactor|perf|docs|style)' || true)
+
+          {
+            echo "CHANGELOG<<EOF"
+            echo "## What's changed"
+            echo ""
+            echo "_${SINCE_MSG}_"
+            echo ""
+            if [[ -n "$FEATURES" ]]; then
+              echo "### Features"
+              echo "$FEATURES"
+              echo ""
+            fi
+            if [[ -n "$FIXES" ]]; then
+              echo "### Bug fixes"
+              echo "$FIXES"
+              echo ""
+            fi
+            if [[ -n "$CHORES" ]]; then
+              echo "### Other"
+              echo "$CHORES"
+              echo ""
+            fi
+            if [[ -n "$OTHER" ]]; then
+              echo "### Uncategorised"
+              echo "$OTHER"
+              echo ""
+            fi
+          } >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          body: |
+            ${{ steps.changelog.outputs.CHANGELOG }}
+
+            ---
+
+            ## Container images
+
+            | Tag | Description |
+            |-----|-------------|
+            | `ghcr.io/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.value }}` | This exact release |
+            | `ghcr.io/${{ env.IMAGE_NAME }}:latest` | Latest stable |
+
+            Platforms: `linux/amd64`, `linux/arm64/v8`
+
+            ---
+
+            ## Deploy with Docker Compose
+
+            ```yaml
+            services:
+              nextimg:
+                image: ghcr.io/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.value }}
+                restart: unless-stopped
+                ports:
+                  - "3000:3000"
+                environment:
+                  IMGPROXY_URL: http://imgproxy:8080
+                  INTERNAL_URL: http://nextimg:3000
+                  DATA_STORE_PATH: /app/store
+                  OUTPUT_TTL: "3600"
+                volumes:
+                  - store-data:/app/store
+                depends_on:
+                  - imgproxy
+
+              imgproxy:
+                image: ghcr.io/imgproxy/imgproxy:latest
+                restart: unless-stopped
+                environment:
+                  IMGPROXY_ENABLE_WEBP_DETECTION: "true"
+                  IMGPROXY_ENABLE_AVIF_DETECTION: "true"
+
+            volumes:
+              store-data:
+            ```
+          draft: false
+          prerelease: false
